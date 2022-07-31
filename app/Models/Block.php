@@ -17,9 +17,18 @@ class Block extends Model
     public static $tableName = 'blocks';
     protected $fillable = ['name', 'temperature', 'location'];
 
+    protected $appends = ['active'];
+    const OPTION_ACTIVE = 0;
+    public $volume = 2;
+
     public function location()
     {
         return $this->belongsTo(Location::class, 'location_id', 'id');
+    }
+
+    public function scopeActive($query)
+    {
+        $query->whereRaw('`options` & (1 << ' . static::OPTION_ACTIVE . ')');
     }
 
     /** MUTATION */
@@ -33,6 +42,11 @@ class Block extends Model
     public function setLocationAttribute($value)
     {
         $this->attributes['location_id'] = $value;
+    }
+    public function getActiveAttribute()
+    {
+        $option = $this->attributes['option'] ?? 0;
+        return ($option & (1 << static::OPTION_ACTIVE)) >> static::OPTION_ACTIVE;
     }
     /** END MUTATION */
 

@@ -1,0 +1,181 @@
+openapi: 3.0.1
+info:
+  title: Fridge Master
+  description: 'API предоставления оренды холодильных площадей'
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: hyandi.work@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.1.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+tags:
+  - name: location
+    description: Локации
+  - name: blocks
+    description: Блоки
+  - name: order
+    description: Заказы
+paths:
+  /location:
+    get:
+      tags:
+        - location
+      description: Список локаций
+      responses:
+        '200':
+          description: Список локаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID
+                        blocks:
+                          type: array
+                          items:
+                            allOf:
+                              - type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                    description: ID
+                              - $ref: '#/components/schemas/Block'
+                    - $ref: '#/components/schemas/Location'
+  /block/calculate:
+    get:
+      tags:
+        - blocks
+      description: Подсчет необходимого количества блоков
+      parameters:
+        - in: query
+          name: size
+          schema:
+            type: integer
+          description: Необходимый объем
+        - in: query
+          name: temperature
+          schema:
+            type: integer
+          description: Необходимая температура
+        - in: query
+          name: date_start
+          schema:
+            type: integer
+            format: timestamp
+          description: Дата начала оренды
+        - in: query
+          name: date_end
+          schema:
+            type: integer
+            format: timestamp
+          description: Дата окончания оренды
+        - in: query
+          name: location
+          schema:
+            type: integer
+          description: Необходимая локация
+      responses:
+        '200':
+          description: Необходимое количество
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Необходимое количество блоков
+  /order:
+    post:
+      tags:
+        - order
+      description: Оформление заказа
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                size:
+                  type: integer
+                  description: Необходимый объём
+                temperature:
+                  type: integer
+                  description: Необходимая температура
+                date_start:
+                  type: integer
+                  format: timestamp
+                  description: Дата начала оренды
+                date_end:
+                  type: integer
+                  format: timestamp
+                  description: Дата окончания оренды
+                location:
+                  type: integer
+                  description: Порядковый номер локации
+      responses:
+        200:
+          description: Успешное создание заказа
+        500:
+          description: Ошибка
+components:
+  schemas:
+    Location:
+      type: object
+      description: Локация где размещаеться блоки
+      properties:
+        name:
+          type: string
+          description: Наименование
+    Block:
+      type: object
+      description: Помещение
+      properties:
+        name:
+          type: string
+          description: Наименование
+        temperature:
+          type: integer
+          description: Поддерживаемая температура
+        location:
+          $ref: '#/components/schemas/Location'
+    Order:
+      type: object
+      properties:
+        block:
+          $ref: '#/components/schemas/Block'
+        date_start:
+          type: integer
+          format: timestamp
+          description: Дата начала оренды
+        date_end:
+          type: integer
+          format: timestamp
+          description: Дата окончания оренды
+        size:
+          type: integer
+          description: Размер орендуемого объема
+        temperature:
+          type: integer
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: http://petstore.swagger.io/oauth/dialog
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

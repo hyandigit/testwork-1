@@ -16,11 +16,15 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     protected $table = 'orders';
-    protected $fillable = ['size', 'temperature', 'date_start', 'date_end', 'block'];
+    protected $fillable = ['size', 'temperature', 'date_start', 'date_end'];
 
-    public function block()
+    protected $primaryKey  = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    public function blocks()
     {
-        return $this->belongsTo(Block::class, 'block_id', 'id');
+        return $this->belongsToMany(Block::class, 'order_blocks', 'order_id', 'block_id');
     }
 
     private function incId($oldId, $offset)
@@ -54,21 +58,10 @@ class Order extends Model
 
     public function save(array $options = [])
     {
-        $this->id = $this->generateID();
+        $this->setAttribute('id', $this->generateID());
         return parent::save($options);
     }
 
     /** MUTATION */
-    public function getBlockAttribute()
-    {
-        if (isset($this->relations['block'])) {
-            return $this->relations['block'];
-        }
-        return NULL;
-    }
-    public function setBlockAttribute($value)
-    {
-        $this->attributes['block_id'] = $value;
-    }
     /** END MUTATION */
 }
